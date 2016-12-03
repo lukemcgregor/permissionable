@@ -2,6 +2,7 @@
 using Neo4jClient.Cypher;
 using Permissionable.Entities;
 using System;
+using System.Linq;
 
 namespace Permissionable
 {
@@ -29,6 +30,19 @@ namespace Permissionable
 				.MergeKey(memberOfKey, "memberOfKey")
 				.Merge("(memberKey) - [:MEMBER] -> (memberOfKey)")
 				.ExecuteWithoutResults();
+		}
+
+		public bool CanItAccess(ICanJoinKey accessor, ICanBeGrantedKey thing, string action)
+		{
+			return _client.Cypher
+				.MergeKey(accessor, "accessor")
+				.MergeKey(thing, "thing")
+				.With("accessor,thing")
+				.Match("(accessor) - [:MEMBER *0..] -> () - [g:GRANT {action: {action}}] -> (thing)")
+				.WithParam("action", action)
+				.Return<bool>("count(g) > 0").
+				Results.
+				First();
 		}
 
 	}
