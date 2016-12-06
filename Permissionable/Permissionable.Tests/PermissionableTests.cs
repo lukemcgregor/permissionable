@@ -7,7 +7,7 @@ namespace Permissionable.Tests
 {
     public class PermissionableTests
     {
-        private static IGraphClient _client = new GraphClient(new Uri("http://localhost:7474/db/data"), "neo4j", "abc123!");
+        private static IGraphClient _client = new GraphClient(new Uri("http://localhost:7474/db/data"), "neo4j", "neo4j");
         static PermissionableTests()
         {
             _client.Connect();
