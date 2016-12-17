@@ -23,12 +23,36 @@ namespace Permissionable
 				.WithParam("action", action)
 				.ExecuteWithoutResults();
 		}
+		
+		public void RevokePermission(ICanJoinKey grantedToKey, ICanBeGrantedKey grantedKey, string action)
+		{
+			_client.Cypher
+				.MergeKey(grantedToKey, "grantedToKey")
+				.MergeKey(grantedKey, "grantedKey")
+				.With("grantedToKey,grantedKey")
+				.Match("(grantedToKey) - [g:GRANT {action: {action}}] -> (grantedKey)")
+				.WithParam("action", action)
+				.Delete("g")
+				.ExecuteWithoutResults();
+		}
+
 		public void MakeMember(ICanJoinKey memberKey, ICanBeJoinedKey memberOfKey)
 		{
 			_client.Cypher
 				.MergeKey(memberKey, "memberKey")
 				.MergeKey(memberOfKey, "memberOfKey")
 				.Merge("(memberKey) - [:MEMBER] -> (memberOfKey)")
+				.ExecuteWithoutResults();
+		}
+
+		public void RemoveMember(ICanJoinKey memberKey, ICanBeJoinedKey memberOfKey)
+		{
+			_client.Cypher
+				.MergeKey(memberKey, "memberKey")
+				.MergeKey(memberOfKey, "memberOfKey")
+				.With("memberKey,memberOfKey")
+				.Match("(memberKey) - [m:MEMBER] -> (memberOfKey)")
+				.Delete("m")
 				.ExecuteWithoutResults();
 		}
 
@@ -44,8 +68,8 @@ namespace Permissionable
 				Results.
 				First();
 		}
-
 	}
+
 	internal static class MergeExtensions
 	{
 		internal static ICypherFluentQuery MergeKey(this ICypherFluentQuery q, IKey key, string valueLabel)
